@@ -18,7 +18,7 @@ class Manager():
         1. Podajemy słowa kluczowe - set_keywords(keywords)
         2. Podajemy dokumenty za pomocą  - set_documents(documents)
         3. gdy przyjdzie zapytanie. ustawiamy je za pomoca komendy set_query(query)
-        4. lista wynikowa pobierana jest przy pomocy polecenia get_similiarity_list.
+        4. lista wynikowa pobierana jest przy pomocy polecenia get_list.
         
         
     '''
@@ -27,8 +27,7 @@ class Manager():
     def __init__(self):
         stemmer = PorterStemmer()
         self.text_builder = Text_Builder(stemmer)
-        self.query = None
-    
+        self._document_function = None
     
     def set_keywords(self,keywords):
         words = []
@@ -39,7 +38,7 @@ class Manager():
     def set_documents(self,documents):
         docs = []
         for doc in documents:
-            docs.append(self.text_builder.get_document_for(doc))
+            docs.append(self._document_function(doc))
         self.documents = tuple(docs)
         self.vector_builder = Vector_Builder(self.keywords, self.documents)
         self._assign_vectors_to_documents()
@@ -52,19 +51,27 @@ class Manager():
         print 'done with vectors'
         
     
+    
+class Tfidf(Manager):
+    def __init__(self):
+        Manager.__init__(self)
+        self._document_function = self.text_builder.get_document_for
     def set_query(self,query):
         query = self.text_builder.get_query_for(query)
         query.vector = self.vector_builder.get_vector_for(query)
         self.query = query
     
-    def get_similiarity_list(self):
+    def get_list(self):
         query = self.query
         if query:
             for d in self.documents:
                 query.add_document(d)
             return query.get_similiarity_list()
         else:
-            #TODO: napisać obługę braku zapytania
             return ''
-            
-            
+
+
+class Kmeans(Manager):
+    def __init__(self):     
+        Manager.__init__(self)
+        self._document_function = self.text_builder.get_categorized_document_for

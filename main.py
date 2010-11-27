@@ -11,4 +11,4 @@ import seeker
 from seeker import text
 from seeker import file
 
-seeker.gui.run(text.Manager(),file.Manager())
+seeker.gui.run(text.manager.Tfidf(),file.Manager())

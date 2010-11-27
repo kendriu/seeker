@@ -3,7 +3,9 @@
 from gui_queue import Queued
 import sys
 import dialog
+import mode
 from seeker.text.vectorbuilder import stringify_array
+from seeker import text
 
 __author__ = "andy"
 __date__ = "$2010-10-09 14:29:49$"
@@ -27,9 +29,11 @@ class SeekerGUI(Queued):
     FILES_LOADING = 'Wczytuję i przygotowuję dane z plików. Proszę czekać...'
     ENTRY_KEYWORD_EMPTY = 'Pole wyszukiwania jest puste.'
     MESSAGE_CHOOSE_BOTH_FILES = ('Ostrzeżenie', 'Źle wybrane pliki', 'Obydwa pliki muszą wybrane, aby mó załadować dane.')
+    
     CONTEXT_FILE_LOADING = 1
     CONTEXT_IS_ON = 2
     CONTEXT_ENTRY_KEYWORDS = 3
+    
     def __init__(self,text_manager,file_manager):
         Queued.__init__(self)
         #Set the Glade file
@@ -44,24 +48,27 @@ class SeekerGUI(Queued):
         self.input =  self.wTree.get_widget('entry_keywords')
         self.text_manager = text_manager
         self.file_manager = file_manager
+        self.mode = self.__set_mode_tfidf()
 
-        #Create our dictionay and connect it
+        #Create our dictionary and connect it
         dic = {"on_main_window_destroy": gtk.main_quit,
             "on_btn_load_files_clicked": self.__btn_load_files_clicked,
             "on_btn_search_clicked":self.__execute_search,
             "on_mn_documents_activate":self.__show_stemmed_documents,
             "on_mn_keywords_activate":self.__show_stemmed_keywords,
+            "on_mn_kmeans_activate": self.__set_mode_kmeans,
+            "on_mn_tfidf_activate": self.__set_mode_tfidf,
             "on_caution_response" : self.caution.close}
         self.wTree.signal_autoconnect(dic)
-    def test(self,widget):
-        print 'raz'
+        
     def __btn_load_files_clicked(self, widget):
-        documents_filename = self.__get_filename_from_choser('chooser_documents')
-        keywords_filename = self.__get_filename_from_choser('chooser_keywords')
+        documents_filename = self.__get_filename_from_chooser('chooser_documents')
+        keywords_filename = self.__get_filename_from_chooser('chooser_keywords')
         if all((documents_filename,keywords_filename)):         
             self.statusbar.push(self.CONTEXT_FILE_LOADING,self.FILES_LOADING)
             data = (self.file_manager.get_keywords_from(keywords_filename),
             self.file_manager.get_documents_from(documents_filename))
+            
             self.text_manager.set_keywords(data[0])
             self.text_manager.set_documents(data[1])
             self.__enable_search_area()
@@ -70,7 +77,7 @@ class SeekerGUI(Queued):
             self.caution.show_dialog_with(*self.MESSAGE_CHOOSE_BOTH_FILES)
             
        
-    def __get_filename_from_choser(self, chooser_name):
+    def __get_filename_from_chooser(self, chooser_name):
         '''
         Pobiera nazwę pliku z chooser'a
         '''
@@ -89,21 +96,21 @@ class SeekerGUI(Queued):
             print self.RESET_FILES
     
     def __enable_search_area(self):
-        widgets = ('entry_keywords','btn_search','menuitem1')
+        widgets = ('entry_keywords','btn_search','menuitem1','btn_wykonaj','entry_seed','entry_max_repeats')
         for w in widgets:        
             w = self.wTree.get_widget(w)
             w.set_sensitive(True)
+            
     def __execute_search(self,widget):
         self.statusbar.pop(self.CONTEXT_ENTRY_KEYWORDS)
         text = self.input.get_text().strip()
         if(text):
-            self.text_manager.set_query(text)
-            result = self.text_manager.get_similiarity_list()
-            prepared = ['Podobieństwo: %f\nTytuł: %s\n'%(d.cosinus,d.title) for d in result]
+            prepared = self.mode.execute_search(text)
             print '\n'.join(prepared)
             self.__show_text(prepared)  
         else:
             self.statusbar.push(self.CONTEXT_ENTRY_KEYWORDS, self.ENTRY_KEYWORD_EMPTY)
+    
     def __show_text(self,tuple):
         self.buffer.set_text('\n'.join(tuple));
     
@@ -114,7 +121,17 @@ class SeekerGUI(Queued):
     def __show_stemmed_keywords(self,widget):
         self.input.set_text('')
         self.__show_text(stringify_array(self.text_manager.keywords))
-      
+    
+    def __set_mode_kmeans(self,widget=None):
+        print 'zmieniam tryb na kmeans' 
+        self.mode = mode.Kmeans(self.wTree)
+        self.text_manager = text.manager.Kmeans()
+    
+    def __set_mode_tfidf(self,widget=None):
+        print 'zmieniam tryb na tfidf'
+        self.mode = mode.Tfidf(self.wTree)
+        self.text_manager = text.manager.Tfidf()
+        
 
 def run(text_manager,file_manager):
     '''

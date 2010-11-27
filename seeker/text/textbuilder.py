@@ -31,6 +31,11 @@ class Text_Builder(object):
         text = Text(string,self.__stemm_string(string))
         text.title,rest = string.split('\n',1)
         return text
+    def get_categorized_document_for(self, string):
+        category,string = string.split('\n',1)     
+        text = Text(string,self.__stemm_string(string))
+        text.category = category
+        return text
 
     def get_query_for(self, string):
         query = Query(string,self.__stemm_string(string))
