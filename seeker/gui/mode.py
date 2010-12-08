@@ -21,9 +21,10 @@ class Base:
         self.hbox_kmeans.set_visible(kmeans)
         
 class Tfidf(Base):
-    def __init__(self, wTree):
+    def __init__(self, wTree, text_manager):
         Base.__init__(self, wTree)
         self._set_visibility_to_hbox(True, False)
+	self.text_manager = text_manager
     
     def execute_search(self, text):
         

@@ -48,7 +48,7 @@ class SeekerGUI(Queued):
         self.input =  self.wTree.get_widget('entry_keywords')
         self.text_manager = text_manager
         self.file_manager = file_manager
-        self.mode = self.__set_mode_tfidf()
+        self.__set_mode_tfidf()
 
         #Create our dictionary and connect it
         dic = {"on_main_window_destroy": gtk.main_quit,
@@ -129,8 +129,9 @@ class SeekerGUI(Queued):
     
     def __set_mode_tfidf(self,widget=None):
         print 'zmieniam tryb na tfidf'
-        self.mode = mode.Tfidf(self.wTree)
-        self.text_manager = text.manager.Tfidf()
+	self.text_manager = text.manager.Tfidf()
+        self.mode = mode.Tfidf(self.wTree, self.text_manager)
+        
         
 
 def run(text_manager,file_manager):
