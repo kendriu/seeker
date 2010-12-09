@@ -34,7 +34,7 @@ class SeekerGUI(Queued):
     CONTEXT_IS_ON = 2
     CONTEXT_ENTRY_KEYWORDS = 3
     
-    def __init__(self,text_manager,file_manager):
+    def __init__(self,file_manager):
         Queued.__init__(self)
         #Set the Glade file
         self.gladefile = "Seeker.glade"
@@ -45,7 +45,6 @@ class SeekerGUI(Queued):
         window = self.wTree.get_widget('text_results')
         self.buffer = gtk.TextBuffer()
         window.set_buffer(self.buffer)
-        self.text_manager = text_manager
         self.file_manager = file_manager
         self.__set_mode_tfidf()
 
@@ -66,9 +65,8 @@ class SeekerGUI(Queued):
         if all((documents_filename,keywords_filename)):         
             self.statusbar.push(self.CONTEXT_FILE_LOADING,self.FILES_LOADING)
             data = (self.file_manager.get_keywords_from(keywords_filename),
-            self.file_manager.get_documents_from(documents_filename))       
-            self.text_manager.set_keywords(data[0])
-            self.text_manager.set_documents(data[1])
+            self.file_manager.get_documents_from(documents_filename))
+            self.mode.set_data(data)     
             self.__enable_search_area()
             self.statusbar.pop(self.CONTEXT_FILE_LOADING)
         else:
@@ -124,21 +122,19 @@ class SeekerGUI(Queued):
     def __set_mode_kmeans(self,widget=None):
         print 'zmieniam tryb na kmeans' 
         self.mode = mode.Kmeans(self.wTree)
-        self.text_manager = text.manager.Kmeans()
     
     def __set_mode_tfidf(self,widget=None):
         print 'zmieniam tryb na tfidf'
-        self.text_manager = text.manager.Tfidf()
-        self.mode = mode.Tfidf(self.wTree, self.text_manager)
+        self.mode = mode.Tfidf(self.wTree)
         
         
 
-def run(text_manager,file_manager):
+def run(file_manager):
     '''
     Odpala GUI programu.
     Do działania potrzebuje klasy zarządzającej tekstami oraz klasy dekodującej zawartość plików  
     '''
-    seeker = SeekerGUI(text_manager, file_manager) #@UnusedVariable
+    seeker = SeekerGUI(file_manager) #@UnusedVariable
     try:
         gtk.threads_init()
     except:

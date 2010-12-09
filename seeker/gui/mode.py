@@ -8,6 +8,8 @@ Dostępne tryby:
  - KMEANS
 
 '''
+import traceback
+from seeker import text
 __author__ = 'andy'
 __date__ = 2010 - 11 - 27
 
@@ -20,13 +22,17 @@ class Base:
     def _set_visibility_to_hbox(self,tfidf,kmeans):       
         self.hbox_tfidf.set_visible(tfidf)        
         self.hbox_kmeans.set_visible(kmeans)
+    
+    def set_data(self,data):
+        self.text_manager.set_keywords(data[0])
+        self.text_manager.set_documents(data[1])
           
 class Tfidf(Base):
-    def __init__(self, wTree, text_manager):
+    def __init__(self, wTree):
         Base.__init__(self, wTree)
-        self._set_visibility_to_hbox(True, False)
-        self.text_manager = text_manager
+        self._set_visibility_to_hbox(True, False)    
         self.input =  self.wTree.get_widget('entry_keywords')
+        self.text_manager = text.manager.Tfidf()
     
     def execute_search(self): 
         text = self.input.get_text().strip()
@@ -49,6 +55,7 @@ class Kmeans(Base):
         self._set_visibility_to_hbox(False, True)
         self.input_seed = self.wTree.get_widget('entry_seed')
         self.input_max_repeats = self.wTree.get_widget('entry_max_repeats')
+        self.text_manager = text.manager.Kmeans()
         
     def execute_search(self, text):
         seed = self.input_seed.get_text().strip()
@@ -57,10 +64,12 @@ class Kmeans(Base):
     
     def __try_prepare(self,seed,max_repeats):
         try:
-            self.__prepare(int(seed), int(max_repeats))
+            self.__prepare(seed,max_repeats)
         except ValueError:
+            print traceback.print_last()
             return False
         return True
     
     def __prepare(self,seed,max_repeats):
+        
         pass
