@@ -27,7 +27,7 @@ class SeekerGUI(Queued):
     
     RESET_FILES = 'Resetuj pliki'
     FILES_LOADING = 'Wczytuję i przygotowuję dane z plików. Proszę czekać...'
-    ENTRY_KEYWORD_EMPTY = 'Pole wyszukiwania jest puste.'
+    ENTRY_KEYWORD_EMPTY = 'Pola wyszukiwania puste. Lub wypełnione niepoprawnie'
     MESSAGE_CHOOSE_BOTH_FILES = ('Ostrzeżenie', 'Źle wybrane pliki', 'Obydwa pliki muszą wybrane, aby mó załadować dane.')
     
     CONTEXT_FILE_LOADING = 1
@@ -45,7 +45,6 @@ class SeekerGUI(Queued):
         window = self.wTree.get_widget('text_results')
         self.buffer = gtk.TextBuffer()
         window.set_buffer(self.buffer)
-        self.input =  self.wTree.get_widget('entry_keywords')
         self.text_manager = text_manager
         self.file_manager = file_manager
         self.__set_mode_tfidf()
@@ -67,8 +66,7 @@ class SeekerGUI(Queued):
         if all((documents_filename,keywords_filename)):         
             self.statusbar.push(self.CONTEXT_FILE_LOADING,self.FILES_LOADING)
             data = (self.file_manager.get_keywords_from(keywords_filename),
-            self.file_manager.get_documents_from(documents_filename))
-            
+            self.file_manager.get_documents_from(documents_filename))       
             self.text_manager.set_keywords(data[0])
             self.text_manager.set_documents(data[1])
             self.__enable_search_area()
@@ -103,9 +101,10 @@ class SeekerGUI(Queued):
             
     def __execute_search(self,widget):
         self.statusbar.pop(self.CONTEXT_ENTRY_KEYWORDS)
-        text = self.input.get_text().strip()
-        if(text):
-            prepared = self.mode.execute_search(text)
+        
+        success = self.mode.execute_search()
+        if(success):
+            prepared = self.mode.get_prepared()
             print '\n'.join(prepared)
             self.__show_text(prepared)  
         else:
@@ -129,7 +128,7 @@ class SeekerGUI(Queued):
     
     def __set_mode_tfidf(self,widget=None):
         print 'zmieniam tryb na tfidf'
-	self.text_manager = text.manager.Tfidf()
+        self.text_manager = text.manager.Tfidf()
         self.mode = mode.Tfidf(self.wTree, self.text_manager)
         
         
