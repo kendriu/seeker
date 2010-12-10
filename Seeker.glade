@@ -295,7 +295,7 @@
             <child>
               <widget class="GtkLabel" id="label4">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Dokumenty pocz&#x105;tkowe :</property>
+                <property name="label" translatable="yes">Ilo&#x15B;&#x107; grup: </property>
               </widget>
               <packing>
                 <property name="position">0</property>
@@ -328,19 +328,20 @@
                 <property name="sensitive">False</property>
                 <property name="can_focus">True</property>
                 <property name="invisible_char">&#x25CF;</property>
-                <property name="text" translatable="yes">100</property>
+                <property name="text" translatable="yes">2</property>
               </widget>
               <packing>
                 <property name="position">3</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkButton" id="btn_wykonaj">
+              <widget class="GtkButton" id="btn_execute">
                 <property name="label" translatable="yes">Wykonaj</property>
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <signal name="clicked" handler="on_btn_execute_clicked"/>
               </widget>
               <packing>
                 <property name="position">4</property>

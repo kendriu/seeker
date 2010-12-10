@@ -52,6 +52,7 @@ class SeekerGUI(Queued):
         dic = {"on_main_window_destroy": gtk.main_quit,
             "on_btn_load_files_clicked": self.__btn_load_files_clicked,
             "on_btn_search_clicked":self.__execute_search,
+            "on_btn_execute_clicked":self.__execute_search,
             "on_mn_documents_activate":self.__show_stemmed_documents,
             "on_mn_keywords_activate":self.__show_stemmed_keywords,
             "on_mn_kmeans_activate": self.__set_mode_kmeans,
@@ -92,7 +93,7 @@ class SeekerGUI(Queued):
             print self.RESET_FILES
     
     def __enable_search_area(self):
-        widgets = ('entry_keywords','btn_search','menuitem1','btn_wykonaj','entry_seed','entry_max_repeats')
+        widgets = ('entry_keywords','btn_search','menuitem1','btn_execute','entry_seed','entry_max_repeats')
         for w in widgets:        
             w = self.wTree.get_widget(w)
             w.set_sensitive(True)
@@ -103,7 +104,6 @@ class SeekerGUI(Queued):
         success = self.mode.execute_search()
         if(success):
             prepared = self.mode.get_prepared()
-            print '\n'.join(prepared)
             self.__show_text(prepared)  
         else:
             self.statusbar.push(self.CONTEXT_ENTRY_KEYWORDS, self.ENTRY_KEYWORD_EMPTY)
@@ -112,12 +112,10 @@ class SeekerGUI(Queued):
         self.buffer.set_text('\n'.join(tuple));
     
     def __show_stemmed_documents(self,widget):
-        self.input.set_text('')
-        self.__show_text([d.stemmed + '\n' for d in self.text_manager.documents])
+        self.__show_text([d.stemmed + '\n' for d in self.mode.text_manager.documents])
      
     def __show_stemmed_keywords(self,widget):
-        self.input.set_text('')
-        self.__show_text(stringify_array(self.text_manager.keywords))
+        self.__show_text(stringify_array(self.mode.text_manager.keywords))
     
     def __set_mode_kmeans(self,widget=None):
         print 'zmieniam tryb na kmeans' 

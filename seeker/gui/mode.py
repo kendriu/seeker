@@ -26,6 +26,9 @@ class Base:
     def set_data(self,data):
         self.text_manager.set_keywords(data[0])
         self.text_manager.set_documents(data[1])
+    
+    def get_prepared(self):
+        return self.prepared
           
 class Tfidf(Base):
     def __init__(self, wTree):
@@ -44,9 +47,6 @@ class Tfidf(Base):
         else:
             return False
         
-    def get_prepared(self):
-        return self.prepared
-        
 
 class Kmeans(Base):
     
@@ -57,19 +57,24 @@ class Kmeans(Base):
         self.input_max_repeats = self.wTree.get_widget('entry_max_repeats')
         self.text_manager = text.manager.Kmeans()
         
-    def execute_search(self, text):
+    def execute_search(self):
         seed = self.input_seed.get_text().strip()
-        max_repeats = self.input_max_repeats().get_text().strip()
-        return self.__try_prepare(seed, max_repeats)
+        max_repeats = self.input_max_repeats.get_text().strip()
+        if(self.__try_set_entry_values(seed, max_repeats)):
+            result = self.text_manager.get_list()
+            self.prepared = ['Grupa (%s):\n%s\n\n'%(g.medoid.category,'\n'.join([d.category for d in g.documents]) ) for g in result]
+            return True
+        else:
+            return False
     
-    def __try_prepare(self,seed,max_repeats):
+    def __try_set_entry_values(self,seed,max_repeats):
         try:
-            self.__prepare(seed,max_repeats)
+            self.__set_entry_values(seed,max_repeats)
         except ValueError:
             print traceback.print_last()
             return False
         return True
     
-    def __prepare(self,seed,max_repeats):
-        
-        pass
+    def __set_entry_values(self,seed,max_repeats):
+        self.text_manager.set_seed(seed)
+        self.text_manager.set_max_repeats(max_repeats)
