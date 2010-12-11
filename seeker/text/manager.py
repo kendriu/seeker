@@ -51,6 +51,7 @@ class Manager():
         for i, doc in enumerate(docs):
             print 'signing vector'
             self.documents[i].vector = self.vector_builder.get_vector_for(doc)
+            self.documents[i].freq_vector = self.vector_builder.get_freq_vector_for(doc)
         print 'done with vectors'
         
     

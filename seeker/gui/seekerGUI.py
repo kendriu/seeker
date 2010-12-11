@@ -5,7 +5,8 @@ import sys
 import dialog
 import mode
 from seeker.text.vectorbuilder import stringify_array
-from seeker import text
+
+from seeker.text.query import *
 
 __author__ = "andy"
 __date__ = "$2010-10-09 14:29:49$"
@@ -14,6 +15,7 @@ __date__ = "$2010-10-09 14:29:49$"
 
 try:
     import pygtk
+    import gtk
     pygtk.require("2.0")
 except:
     pass
@@ -104,10 +106,38 @@ class SeekerGUI(Queued):
         success = self.mode.execute_search()
         if(success):
             prepared = self.mode.get_prepared()
-            self.__show_text(prepared)  
+            self.__show_text(prepared) 
+            self.__show_extenions() 
         else:
             self.statusbar.push(self.CONTEXT_ENTRY_KEYWORDS, self.ENTRY_KEYWORD_EMPTY)
     
+    def __show_extenions(self):
+        input =  self.wTree.get_widget('entry_keywords')
+        
+        w = self.wTree.get_widget("query_ext_box")
+        w.foreach(w.remove)
+
+        docs = self.mode.text_manager.documents
+        keys = self.mode.text_manager.keywords
+        extensions = QueryExtensions(docs, keys, self.mode.text_manager)
+        
+        ext_query = [input.get_text().strip()]
+        def on_toggled(widget, data):
+            if widget.get_active():
+                ext_query.append(data[0].stemmed)
+            else:
+                ext_query.remove(data[0].stemmed)
+
+            input.set_text(" ".join(ext_query))
+
+        for k, ex in extensions.get_extensions_for_query(input.get_text()).items():
+            for e in ex:
+                window = gtk.CheckButton(e[0].original)
+                w.add(window)
+                window.connect('toggled', on_toggled, e) 
+                
+        w.foreach(lambda x: x.show())
+
     def __show_text(self,tuple):
         self.buffer.set_text('\n'.join(tuple));
     

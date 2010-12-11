@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import numpy
+
 from text import *
-__all__ = ('Query',)
+from seeker import utils
+from operator import itemgetter
+
+__all__ = ('Query', 'QueryExtensions')
 class Query (Text):
 
     """
@@ -42,7 +47,61 @@ class Query (Text):
         self.documents.sort(key=lambda document: document.cosinus, reverse=True)
         return self.documents
         
-            
+class QueryExtensions:
+    
+    def __init__(self, documents, keywords, text_manager):
+        self.documents = documents
+        self.keywords = keywords
+        self.text_builder = text_manager.text_builder
+
+        self.matrix = self.__create_assoc_matrix(self.documents)
+
+    def __create_assoc_matrix(self, documents):
+        m = [list(d.freq_vector) for d in self.documents]        
+        assoc_matrix = numpy.transpose(numpy.matrix(m))
+        assoc_matrix = assoc_matrix * numpy.transpose(assoc_matrix)        
+        return utils.MatrixProxy(assoc_matrix)
+    
+    def get_keyword_index(self, keyword):
+        key = keyword.stemmed
+
+        def getter(k):
+            return k.stemmed
+
+        try:
+            return map(getter, self.keywords).index(key)
+        except ValueError:
+            return -1;
+
+    def remove_duplicated_entries(self, seq):
+
+        def stemmed_getter(x):
+            return x[0].stemmed
+
+        return utils.unique(seq, idfun=stemmed_getter)
+
+    def get_extension_for_keyword(self, word): 
+        key = self.text_builder.get_keyword_for(word)
+        word_index = self.get_keyword_index(key)
+
+        if word_index < 0:
+            return []
+
+        sorted_indexes = self.matrix.sorted_nonzero_indexes(word_index)
+        word_assoc_vector = self.matrix.get_word_vector(word_index)
+        extensions = [(self.keywords[x], word_assoc_vector[x]) for x in sorted_indexes]
+        unique = self.remove_duplicated_entries(extensions)
+       
+        unique.sort(key=itemgetter(1), reverse=True)
+        return unique
+
+    def get_extensions_for_query(self, q):
+        words = q.split(" ")
+        extensions = {}        
+        count = int(4 / len(words) + 0.5)
+        for word in words:
+            extensions[word] = self.get_extension_for_keyword(word)[1:count+1] 
+        return extensions
     
 
 import unittest

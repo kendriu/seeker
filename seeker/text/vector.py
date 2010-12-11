@@ -66,6 +66,9 @@ class Vector(object):
         """
         return len(self.tuple)
 
+    def __getitem__(self, index):
+        return self.tuple[index]
+
 import unittest
 
 class TestVector(unittest.TestCase):

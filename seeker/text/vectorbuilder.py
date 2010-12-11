@@ -45,7 +45,22 @@ class Vector_Builder(object):
             vector.append(tfidf_value)
         return Vector(vector)
             
+    def get_freq_vector_for(self, text):
+        """
+		Zwraca wektor częstości wystapień każdego keyworda w tekscie.
         
+        @param text: tekst dla którego trzeba wyliczyć wektor
+        @return: Vectorfreq
+        @uthor: Tomasz Sobkowiak
+        """
+        vector = []
+        for word in self.keywords:
+            try:
+                f = freq(word, text)
+            except ZeroDivisionError:
+                f = 0
+            vector.append(f)
+        return Vector(vector)
         
 def stringify_array(array):
     '''
